@@ -31,7 +31,7 @@ public class EmailHandler {
 
 
     private void sendEmail(String to, String subject, String content) {
-        String from = "ENTER EMAIL HERE";
+        String from = "htlgrieskirchentestet@gmail.com";
 
         // Assuming you are sending email from through gmails smtp
         String host = "smtp.gmail.com";
@@ -51,7 +51,7 @@ public class EmailHandler {
         Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
 
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(from, "ENTER PASSWORD"); // Unser Program kann emails derzeit von einem Gmail-Konto aus versenden
+                return new PasswordAuthentication(from, "Htlgkr21"); // Unser Program kann emails derzeit von einem Gmail-Konto aus versenden
             }
         });
 
