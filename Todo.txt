@@ -1,0 +1,3 @@
+Registrierungs-Email: Termin buchen Link einfügen
+
+Termin-Email: Info + Termin anzeigen Link
