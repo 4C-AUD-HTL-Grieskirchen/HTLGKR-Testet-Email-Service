@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -38,26 +39,29 @@ public class MyFirestoreHandler {
                         if (e != null || queryDocumentSnapshots == null)
                             return;
 
+
+                      List<DocumentChange> temp =   queryDocumentSnapshots.getDocumentChanges();
+
                         // Datensaetze abfragen
-                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
 
                             // Datensatz information
-                            String email = (String) doc.get("email");
-                            boolean emailSent = (boolean) doc.get("emailSent");
-                            String selectedFacility = (String) doc.get("selectedFacility");
-                            boolean appointmentEmailSent = (boolean) doc.get("appointmentEmailSent");
-                            boolean isCanceled = (boolean) doc.get("isCanceled");
-                            boolean cancelEmailSent = (boolean) doc.get("cancelEmailSent");
+                            String email = (String) doc.getDocument().get("email");
+                            boolean emailSent = (boolean) doc.getDocument().get("emailSent");
+                            String selectedFacility = (String) doc.getDocument().get("selectedFacility");
+                            boolean appointmentEmailSent = (boolean) doc.getDocument().get("appointmentEmailSent");
+                            boolean isCanceled = (boolean) doc.getDocument().get("isCanceled");
+                            boolean cancelEmailSent = (boolean) doc.getDocument().get("cancelEmailSent");
 
                             // Wenn registriert => registration-email senden
                             if (!emailSent) {
                                 System.out.println("registration-email sent to: " + email + "\n");
-                                new EmailHandler().sendRegistrationEmail(email, doc.getId());
+                                new EmailHandler().sendRegistrationEmail(email, doc.getDocument().getId());
 
                                 // set emailSent == true
                                 Map<String, Object> update = new HashMap<>();
                                 update.put("emailSent", true);
-                                doc.getReference().set(update, SetOptions.merge());
+                                doc.getDocument().getReference().set(update, SetOptions.merge());
                             }
 
                             // Wenn Termin gebucht => appointment-email senden
@@ -68,15 +72,15 @@ public class MyFirestoreHandler {
                                 if (docScreeningStation.exists()) {
 
                                     // Termin Informationen
-                                    String laufzettelNr = (String) doc.get("laufzettelNr");
+                                    String laufzettelNr = (String) doc.getDocument().get("laufzettelNr");
                                     String address = (String) docScreeningStation.get("address");
                                     int postalCode = docScreeningStation.getDouble("postalCode").intValue();
                                     String city = (String) docScreeningStation.get("city");
 
-                                    String timeDayId = (String) doc.get("selectedTimeDay");
+                                    String timeDayId = (String) doc.getDocument().get("selectedTimeDay");
                                     String date = getAppointmentDate(docScreeningStation, timeDayId);
 
-                                    String time = getAppointmentTime(docScreeningStation, timeDayId, doc);
+                                    String time = getAppointmentTime(docScreeningStation, timeDayId, doc.getDocument());
 
                                     System.out.println("LaufzettelNr: " + laufzettelNr);
                                     System.out.println("Datum: " + date);
@@ -91,7 +95,7 @@ public class MyFirestoreHandler {
                                     // set appointmentEmailSent == true
                                     Map<String, Object> update = new HashMap<>();
                                     update.put("appointmentEmailSent", true);
-                                    doc.getReference().set(update, SetOptions.merge());
+                                    doc.getDocument().getReference().set(update, SetOptions.merge());
                                 } else {
                                     System.err.println("Screening Station does not exist!");
                                 }
@@ -105,7 +109,7 @@ public class MyFirestoreHandler {
                                 // set cancelEmailSent == true
                                 Map<String, Object> update = new HashMap<>();
                                 update.put("cancelEmailSent", true);
-                                doc.getReference().set(update, SetOptions.merge());
+                                doc.getDocument().getReference().set(update, SetOptions.merge());
                             }
                         }
                     }
