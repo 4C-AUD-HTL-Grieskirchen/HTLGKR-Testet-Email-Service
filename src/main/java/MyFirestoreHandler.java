@@ -19,7 +19,7 @@ public class MyFirestoreHandler {
     public static void main(String[] args) throws IOException {
         FileInputStream service = null;
         try {
-            service = new FileInputStream(new File(MyFirestoreHandler.class.getResource("/project.json").toURI()));
+            service = new FileInputStream(new File(MyFirestoreHandler.class.getResource("/key.json").toURI()));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -52,7 +52,7 @@ public class MyFirestoreHandler {
                             // Wenn registriert => registration-email senden
                             if (!emailSent) {
                                 System.out.println("registration-email sent to: " + email + "\n");
-                                new EmailHandler().sendRegistrationEmail(email);
+                                new EmailHandler().sendRegistrationEmail(email, doc.getId());
 
                                 // set emailSent == true
                                 Map<String, Object> update = new HashMap<>();
