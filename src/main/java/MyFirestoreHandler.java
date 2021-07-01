@@ -67,8 +67,7 @@ public class MyFirestoreHandler {
                             if (selectedFacility != null && !appointmentEmailSent) {
                                 DocumentSnapshot docScreeningStation = null;
                                 try {
-                                    ApiFuture<DocumentSnapshot> temp = selectedFacility.get();
-                                    docScreeningStation = temp.get();
+                                    docScreeningStation = selectedFacility.get().get();
                                 } catch (InterruptedException | ExecutionException interruptedException) {
                                     interruptedException.printStackTrace();
                                 }
@@ -77,13 +76,8 @@ public class MyFirestoreHandler {
                                     System.err.println("Screeningstation doesn't exist anymore");
                                 }
 
-                                System.out.println("Screeningstation: " +docScreeningStation);
-
-                                Map<String, Object> data = docScreeningStation.getData();
-
                                 // Termin Informationen
                                 String laufzettelNr = doc.getDocument().getId();
-                                String temp = docScreeningStation.getId();
                                 String address = docScreeningStation.getString("address");
                                 String postalCode = docScreeningStation.getString("postalCode");
                                 String city = docScreeningStation.getString("city");
