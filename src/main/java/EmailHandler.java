@@ -20,8 +20,8 @@ public class EmailHandler {
         readyAppointmentText = readyAppointmentText.replace("plhDate", date);
         readyAppointmentText = readyAppointmentText.replace("plhTime", time);
         readyAppointmentText = readyAppointmentText.replace("plhLaufzettelNr", laufzettelNr);
+        readyAppointmentText = readyAppointmentText.replace("{registrationId}", laufzettelNr);
 
-        System.out.println(readyAppointmentText);
         // Email senden
         sendEmail(recipient, "Österreich testet - Bestätigung", readyAppointmentText);
     }

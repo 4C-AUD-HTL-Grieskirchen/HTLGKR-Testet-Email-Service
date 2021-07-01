@@ -82,19 +82,17 @@ public class MyFirestoreHandler {
                                 String postalCode = docScreeningStation.getString("postalCode");
                                 String city = docScreeningStation.getString("city");
 
-                                String timeDayId = doc.getDocument().getString("selectedTimeDay");
-                                String date = getAppointmentDate(docScreeningStation, timeDayId);
+                                String date = "";
+                                String time = "";
 
-                                String time = getAppointmentTime(docScreeningStation, timeDayId, doc.getDocument());
+                                try {
+                                    date = ((DocumentReference) (doc.getDocument().get("selectedTimeDay"))).get().get().getString("date");
+                                    time = ((DocumentReference) (doc.getDocument().get("selectedTimeslot"))).get().get().getString("time");
+                                } catch (InterruptedException | ExecutionException interruptedException) {
+                                    interruptedException.printStackTrace();
+                                }
 
-                                System.out.println("LaufzettelNr: " + laufzettelNr);
-                                System.out.println("Datum: " + date);
-                                System.out.println("Zeit: " + time);
-                                System.out.println("Address: " + address);
-                                System.out.println("PostalCode: " + postalCode);
-                                System.out.println("city: " + city);
-
-                                new EmailHandler().sendAppointmentEmail(email, laufzettelNr, date, time, address, String.valueOf(postalCode), city);
+                                new EmailHandler().sendAppointmentEmail(email, laufzettelNr, date, time, address, postalCode, city);
                                 System.out.println("appointment-email sent to: " + email + "\n");
 
                                 // set appointmentEmailSent == true
@@ -133,49 +131,5 @@ public class MyFirestoreHandler {
                 e.printStackTrace();
             }
         }
-    }
-
-    private static DocumentSnapshot getFirebaseDocument(Firestore firestore, String collectionName, String documentName) {
-        DocumentReference docRef = firestore.collection(collectionName).document(documentName);
-
-        // asynchronously retrieve the document
-        ApiFuture<DocumentSnapshot> future = docRef.get();
-
-        // future.get() blocks on response
-        DocumentSnapshot document = null;
-        try {
-            document = future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return document;
-    }
-
-    private static String getAppointmentDate(DocumentSnapshot docScreeningStation, String timeDayId) {
-        DocumentReference timeDayFuture = docScreeningStation.getReference().collection("timeDays").document(timeDayId);
-        ApiFuture<DocumentSnapshot> timeDaySnapshot = timeDayFuture.get();
-        try {
-            DocumentSnapshot timeDay = timeDaySnapshot.get();
-            return (String) timeDay.get("date");
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        } catch (ExecutionException ex) {
-            ex.printStackTrace();
-        }
-
-        return "Date not found!";
-    }
-
-    private static String getAppointmentTime(DocumentSnapshot docScreeningStation, String timeDayId, DocumentSnapshot doc) {
-        ApiFuture<DocumentSnapshot> timeSlotFuture = docScreeningStation.getReference().collection("timeDays").document(timeDayId).collection("slots").document((String) doc.get("selectedTimeSlot")).get();
-        try {
-            DocumentSnapshot timeSlot = timeSlotFuture.get();
-            return (String) timeSlot.get("time");
-        } catch (InterruptedException | ExecutionException ex) {
-            ex.printStackTrace();
-        }
-        return "Time not found!";
     }
 }
