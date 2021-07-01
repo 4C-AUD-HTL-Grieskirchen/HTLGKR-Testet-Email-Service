@@ -51,7 +51,9 @@ public class MyFirestoreHandler {
                             String selectedFacility = (String) doc.getDocument().get("selectedFacility");
                             boolean appointmentEmailSent = (boolean) doc.getDocument().get("appointmentEmailSent");
                             boolean isCanceled = (boolean) doc.getDocument().get("isCanceled");
+                            boolean resultEmailSent = (boolean) doc.getDocument().get("resultEmailSent");
                             boolean cancelEmailSent = (boolean) doc.getDocument().get("cancelEmailSent");
+                            String result = (String) doc.getDocument().get("result");
 
                             // Wenn registriert => registration-email senden
                             if (!emailSent) {
@@ -101,6 +103,16 @@ public class MyFirestoreHandler {
                                 }
                             }
 
+                            if (!result.equals("unknown") && !resultEmailSent){
+                                new EmailHandler().sendResultEmail(email, result);
+                                System.out.println("result-email sent to: " + email + "\n");
+
+                                // set appointmentEmailSent == true
+                                Map<String, Object> update = new HashMap<>();
+                                update.put("resultEmailSent", true);
+                                doc.getDocument().getReference().set(update, SetOptions.merge());
+                            }
+
                             // Termin storniert => cancelEmail senden
                             if (isCanceled && !cancelEmailSent) {
                                 System.out.println("cancel-email sent to: " + email + "\n");
@@ -114,7 +126,13 @@ public class MyFirestoreHandler {
                         }
                     }
                 });
-        while (true) ;
+        while (true) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static DocumentSnapshot getFirebaseDocument(Firestore firestore, String collectionName, String documentName) {
