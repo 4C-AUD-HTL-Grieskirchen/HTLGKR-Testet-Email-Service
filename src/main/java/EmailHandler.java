@@ -5,7 +5,7 @@ import java.util.Properties;
 public class EmailHandler {
     private final String registrationText = "<h1>Registrierungsbestätigung</h1><p>Sie haben sich erfolgreich registriert und können unter folgendem Link einen Termin für Ihren kostenlosen COVID-19 Test buchen.</p><a href=\"https://htlgkr-testet.web.app/registration/start/{registrationId}\" target=\"_blank\" style=\"padding: 0.6rem 1rem; color: ffffff\">Termin buchen</a><p>-------------------------------------</p><p>Bundesministerium</p></p><p>Soziales, Gesundheit, Pflege</p><p>und Konsumentenschutz</p>";
     private final String appointmentText = "<h1>Terminbestätigung</h1><p>Ihr Termin für den kostenlosen COVID-19 Test wurde gebucht.</p><p>Zum Test bitte mitbringen:</p><li>Gedruckten Laufzettel aus Ihrer Anmeldung oder die Laufzettel-Nummer</li><li>Ausweis</li><p style=\"font-weight: bold;\">Laufzettel-Nummer: plhLaufzettelNr</p><p style=\"font-weight: bold;\">Datum: plhDate</p><p style=\"font-weight: bold;\">Zeit: plhTime</p><p style=\"font-weight: bold;\">Ort: plhAddress - plhPostalCode plhCity</p><a href=\"https://htlgkr-testet.web.app/appointment/auth/{registrationId}\" target=\"_blank\" style=\"padding: 0.6rem 1rem; color: ffffff\">Termin anzeigen</a><p>-------------------------------------</p><p>Bundesministerium</p></p><p>Soziales, Gesundheit, Pflege</p><p>und Konsumentenschutz</p>";
-    private final String resultText = "<h1>Ihr Testergebnis</h1><p>Ihr Testergbnis lautet:</p><h2>{result}</h2><p>-------------------------------------</p><p>Bundesministerium</p></p><p>Soziales, Gesundheit, Pflege</p><p>und Konsumentenschutz</p>";
+    private final String resultText = "<h1>Ihr Testergebnis</h1><p>Ihr Testergbnis lautet:</p><h2>{result}</h2><h2>Download PDF:</h2><a href=\"{URL}\" target=\"_blank\" style=\"padding: 0.6rem 1rem; color: ffffff\">Termin buchen</a><p>-------------------------------------</p><p>Bundesministerium</p></p><p>Soziales, Gesundheit, Pflege</p><p>und Konsumentenschutz</p>";
     private final String cancellationText = "<h1>Storno-Bestätigung</h1><p>Ihr Termin am TODO um TODO Uhr für den kostenlosen COVID-19 Test wurde storniert.</p><p>-------------------------------------</p><p>Bundesministerium</p></p><p>Soziales, Gesundheit, Pflege</p><p>und Konsumentenschutz</p>";
 
     public void sendRegistrationEmail(String recipient, String registrationId) {
@@ -30,8 +30,9 @@ public class EmailHandler {
         sendEmail(recipient, "Österreich testet - Storno-Bestätigung", cancellationText);
     }
 
-    public void sendResultEmail(String email, String result) {
+    public void sendResultEmail(String email, String result, String URL) {
         String modifiedResultText = resultText.replace("{result}", result);
+        modifiedResultText = modifiedResultText.replace("{URL}", URL);
 
         sendEmail(email, "Österreich testet - Ergebnis", modifiedResultText);
     }
