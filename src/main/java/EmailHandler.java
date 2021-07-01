@@ -21,18 +21,19 @@ public class EmailHandler {
         readyAppointmentText = readyAppointmentText.replace("plhTime", time);
         readyAppointmentText = readyAppointmentText.replace("plhLaufzettelNr", laufzettelNr);
 
+        System.out.println(readyAppointmentText);
         // Email senden
-        new EmailHandler().sendEmail(recipient, "Österreich testet - Bestätigung", readyAppointmentText);
+        sendEmail(recipient, "Österreich testet - Bestätigung", readyAppointmentText);
     }
 
     public void sendCancelEmail(String recipient) {
-        new EmailHandler().sendEmail(recipient, "Österreich testet - Storno-Bestätigung", cancellationText);
+        sendEmail(recipient, "Österreich testet - Storno-Bestätigung", cancellationText);
     }
 
-    public void sendResultEmail(String recipient, String result){
+    public void sendResultEmail(String email, String result) {
         String modifiedResultText = resultText.replace("{result}", result);
 
-        new EmailHandler().sendEmail(recipient, "Österreich testet - Ergebnis", modifiedResultText);
+        sendEmail(email, "Österreich testet - Ergebnis", modifiedResultText);
     }
 
     private void sendEmail(String to, String subject, String content) {

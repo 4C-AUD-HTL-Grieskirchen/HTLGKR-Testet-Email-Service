@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -36,23 +35,19 @@ public class MyFirestoreHandler {
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirestoreException e) {
-                        if (e != null || queryDocumentSnapshots == null)
-                            return;
-
-
-                      List<DocumentChange> temp =   queryDocumentSnapshots.getDocumentChanges();
+                        if (e != null || queryDocumentSnapshots == null) return;
 
                         // Datensaetze abfragen
                         for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
 
                             // Datensatz information
-                            String email = (String) doc.getDocument().get("email");
-                            boolean emailSent = (boolean) doc.getDocument().get("emailSent");
-                            String selectedFacility = (String) doc.getDocument().get("selectedFacility");
-                            boolean appointmentEmailSent = (boolean) doc.getDocument().get("appointmentEmailSent");
-                            boolean isCanceled = (boolean) doc.getDocument().get("isCanceled");
-                            boolean resultEmailSent = (boolean) doc.getDocument().get("resultEmailSent");
-                            boolean cancelEmailSent = (boolean) doc.getDocument().get("cancelEmailSent");
+                            String email = doc.getDocument().getString("email");
+                            boolean emailSent = doc.getDocument().getBoolean("emailSent");
+                            DocumentReference selectedFacility = (DocumentReference) doc.getDocument().get("selectedFacility");
+                            boolean appointmentEmailSent = doc.getDocument().getBoolean("appointmentEmailSent");
+                            boolean isCanceled = doc.getDocument().getBoolean("isCanceled");
+                            boolean resultEmailSent = doc.getDocument().getBoolean("resultEmailSent");
+                            boolean cancelEmailSent = doc.getDocument().getBoolean("cancelEmailSent");
                             String result = (String) doc.getDocument().get("result");
 
                             // Wenn registriert => registration-email senden
@@ -66,41 +61,52 @@ public class MyFirestoreHandler {
                                 doc.getDocument().getReference().set(update, SetOptions.merge());
                             }
 
+
+
                             // Wenn Termin gebucht => appointment-email senden
-                            if (selectedFacility != "" && !appointmentEmailSent) {
-//
-                                DocumentSnapshot docScreeningStation = getFirebaseDocument(firestore, "ScreeningStations", selectedFacility);
-
-                                if (docScreeningStation.exists()) {
-
-                                    // Termin Informationen
-                                    String laufzettelNr = (String) doc.getDocument().get("laufzettelNr");
-                                    String address = (String) docScreeningStation.get("address");
-                                    int postalCode = docScreeningStation.getDouble("postalCode").intValue();
-                                    String city = (String) docScreeningStation.get("city");
-
-                                    String timeDayId = (String) doc.getDocument().get("selectedTimeDay");
-                                    String date = getAppointmentDate(docScreeningStation, timeDayId);
-
-                                    String time = getAppointmentTime(docScreeningStation, timeDayId, doc.getDocument());
-
-                                    System.out.println("LaufzettelNr: " + laufzettelNr);
-                                    System.out.println("Datum: " + date);
-                                    System.out.println("Zeit: " + time);
-                                    System.out.println("Address: " + address);
-                                    System.out.println("PostalCode: " + postalCode);
-                                    System.out.println("city: " + city);
-
-                                    new EmailHandler().sendAppointmentEmail(email, laufzettelNr, date, time, address, String.valueOf(postalCode), city);
-                                    System.out.println("appointment-email sent to: " + email + "\n");
-
-                                    // set appointmentEmailSent == true
-                                    Map<String, Object> update = new HashMap<>();
-                                    update.put("appointmentEmailSent", true);
-                                    doc.getDocument().getReference().set(update, SetOptions.merge());
-                                } else {
-                                    System.err.println("Screening Station does not exist!");
+                            if (selectedFacility != null && !appointmentEmailSent) {
+                                DocumentSnapshot docScreeningStation = null;
+                                try {
+                                    ApiFuture<DocumentSnapshot> temp = selectedFacility.get();
+                                    docScreeningStation = temp.get();
+                                } catch (InterruptedException | ExecutionException interruptedException) {
+                                    interruptedException.printStackTrace();
                                 }
+
+                                if(!docScreeningStation.exists()) {
+                                    System.err.println("Screeningstation doesn't exist anymore");
+                                }
+
+                                System.out.println("Screeningstation: " +docScreeningStation);
+
+                                Map<String, Object> data = docScreeningStation.getData();
+
+                                // Termin Informationen
+                                String laufzettelNr = doc.getDocument().getId();
+                                String temp = docScreeningStation.getId();
+                                String address = docScreeningStation.getString("address");
+                                String postalCode = docScreeningStation.getString("postalCode");
+                                String city = docScreeningStation.getString("city");
+
+                                String timeDayId = doc.getDocument().getString("selectedTimeDay");
+                                String date = getAppointmentDate(docScreeningStation, timeDayId);
+
+                                String time = getAppointmentTime(docScreeningStation, timeDayId, doc.getDocument());
+
+                                System.out.println("LaufzettelNr: " + laufzettelNr);
+                                System.out.println("Datum: " + date);
+                                System.out.println("Zeit: " + time);
+                                System.out.println("Address: " + address);
+                                System.out.println("PostalCode: " + postalCode);
+                                System.out.println("city: " + city);
+
+                                new EmailHandler().sendAppointmentEmail(email, laufzettelNr, date, time, address, String.valueOf(postalCode), city);
+                                System.out.println("appointment-email sent to: " + email + "\n");
+
+                                // set appointmentEmailSent == true
+                                Map<String, Object> update = new HashMap<>();
+                                update.put("appointmentEmailSent", true);
+                                doc.getDocument().getReference().set(update, SetOptions.merge());
                             }
 
                             if (!result.equals("unknown") && !resultEmailSent){
